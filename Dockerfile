@@ -1,36 +1,20 @@
 # Use an official Golang runtime as a parent image
-FROM golang:latest AS builder
+FROM golang:1.21.4
 
-# Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy go mod and sum files
 COPY go.mod go.sum ./
 
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+# Download all dependencies
 RUN go mod download
 
 # Copy the source code into the container
-COPY . .
+COPY . ./
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /go-assignment
 
-# Start a new stage from scratch
-FROM alpine:latest  
-
-# Set the Current Working Directory inside the container
-WORKDIR /root/
-
-# Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/app .
-
-# Expose port 9000 to the outside world
 EXPOSE 9000
 
-# Set environment variables for Elasticsearch connection
-ENV ELASTICSEARCH_HOST="https://localhost:9200"
-ENV ELASTICSEARCH_PORT="9200"
-
 # Command to run the executable
-CMD ["./app"]
+CMD ["/go-assignment"]
