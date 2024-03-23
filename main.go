@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"personal-project/fampay-assignment/client"
 	"personal-project/fampay-assignment/controller"
 	"personal-project/fampay-assignment/repo"
 	"personal-project/fampay-assignment/service"
@@ -149,8 +150,16 @@ func main() {
 	if err != nil {
 		panic("Error in starting server")
 	}
+	apiKeysStr := os.Getenv("YTAPIKEY")
+    if apiKeysStr == "" {
+        log.Fatal("YTAPIKEYS environment variable not set")
+    }
+    // Split the string into a slice of strings
+    apiKeys := strings.Split(apiKeysStr, ",")
+	
+	youTubeClient := client.NewYouTubeAPIClient(apiKeys)
 	repo := repo.NewRepository(ESClient)
-	service := service.NewService(repo)
+	service := service.NewService(repo, youTubeClient)
 	controller := controller.NewController(service)
 	router := mux.NewRouter()
 	apiV1 := router.PathPrefix("/api/v1").Subrouter()

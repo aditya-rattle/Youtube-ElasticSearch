@@ -1,12 +1,9 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
-	"net/url"
-	"os"
+	"personal-project/fampay-assignment/client"
 	"personal-project/fampay-assignment/models"
 	"personal-project/fampay-assignment/repo"
 	"sync"
@@ -14,56 +11,26 @@ import (
 )
 
 type ServiceImpl struct {
-	repo repo.IRepository
+	repo   repo.IRepository
+	client *client.YouTubeAPIClient
 }
 
-func NewService(repo repo.IRepository) IService {
+func NewService(repo repo.IRepository, client *client.YouTubeAPIClient) IService {
 	return &ServiceImpl{
-		repo: repo,
+		repo:   repo,
+		client: client,
 	}
 }
 
-func fetchLatestVideos(query, pageToken string, resultChan chan<- []models.Video) (string, error) {
+func (srv *ServiceImpl) fetchLatestVideos(query, pageToken string, resultChan chan<- []models.Video) (string, error) {
 
-	apiKey := os.Getenv("YTAPIKEY")
-	log.Println("apiKey", apiKey)
-
-	searchQuery := query
-
-	baseURL := "https://www.googleapis.com/youtube/v3/search"
-	params := url.Values{}
-	params.Set("part", "snippet")
-	params.Set("maxResults", "5")
-	params.Set("q", searchQuery)
-	params.Set("key", apiKey)
-	params.Set("order", "date")
-	if pageToken != "" {
-		params.Set("pageToken", pageToken)
-	}
-
-	url := baseURL + "?" + params.Encode()
-
-	resp, err := http.Get(url)
+	response, err := srv.client.GetYoutubeVideoDetails(query, pageToken)
 	if err != nil {
-		log.Println("Error fetching data from YouTube API:", err)
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	log.Println("Response", resp)
-
-	var response map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
-		log.Println("Error decoding JSON response:", err)
+		log.Println("Error from youtube client", err)
 		return "", err
 	}
 	var nextPageToken string
-
 	videos := make([]models.Video, 0)
-	// if response["items"] == nil {
-	// 	return response["nextPageToken"].(string), nil
-	// }
 	for _, item := range response["items"].([]interface{}) {
 		videoData := item.(map[string]interface{})["snippet"].(map[string]interface{})
 		title := videoData["title"].(string)
@@ -98,7 +65,7 @@ func (srv *ServiceImpl) StartFetchingCron(query string) {
 	go func() {
 		defer wg.Done()
 		for {
-			pageToken, err := fetchLatestVideos(query, nextPageToken, resultChan)
+			pageToken, err := srv.fetchLatestVideos(query, nextPageToken, resultChan)
 			if err != nil {
 				log.Println("Error in calling Youtube API")
 				return
