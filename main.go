@@ -151,12 +151,12 @@ func main() {
 		panic("Error in starting server")
 	}
 	apiKeysStr := os.Getenv("YTAPIKEY")
-    if apiKeysStr == "" {
-        log.Fatal("YTAPIKEYS environment variable not set")
-    }
-    // Split the string into a slice of strings
-    apiKeys := strings.Split(apiKeysStr, ",")
-	
+	if apiKeysStr == "" {
+		log.Fatal("YTAPIKEYS environment variable not set")
+	}
+	// Split the string into a slice of strings
+	apiKeys := strings.Split(apiKeysStr, ",")
+
 	youTubeClient := client.NewYouTubeAPIClient(apiKeys)
 	repo := repo.NewRepository(ESClient)
 	service := service.NewService(repo, youTubeClient)

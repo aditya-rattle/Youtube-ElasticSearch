@@ -61,6 +61,10 @@ func (srv *ServiceImpl) StartFetchingCron(query string) {
 	resultChan := make(chan []models.Video)
 	var wg sync.WaitGroup
 	var nextPageToken string
+	/*
+		Adding a routine which will fetch data
+		from YT in async and put it in resultChan
+	*/
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -75,6 +79,10 @@ func (srv *ServiceImpl) StartFetchingCron(query string) {
 		}
 	}()
 
+	/*
+		Adding a routine which will fetch data from
+		resultChan in async and put it in ES
+	*/
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

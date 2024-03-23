@@ -22,6 +22,7 @@ func NewRepository(esClient *elasticsearch.Client) IRepository {
 	}
 }
 
+// This will dump data from YT in ES.
 func (repo *RepositoryImpl) InsertIntoElasticsearch(videos []models.Video) error {
 
 	var buf bytes.Buffer
@@ -55,6 +56,9 @@ func (repo *RepositoryImpl) InsertIntoElasticsearch(videos []models.Video) error
 	return nil
 }
 
+/*
+This will give paginated response in reverse chronological order.
+*/
 func (repo *RepositoryImpl) GetPaginatedResponse(pageSize, pageNumber int32) ([]models.Video, error) {
 
 	query := map[string]interface{}{
@@ -94,6 +98,11 @@ func (repo *RepositoryImpl) GetPaginatedResponse(pageSize, pageNumber int32) ([]
 	return utility.EntityMapper(response), nil
 }
 
+/*
+This will try to fetch videos with matching query.
+e.g., If lets say we had put videos of how to make tea. Than if query passed is tea, than
+also it will give us the required vide suggestions.
+*/
 func (repo *RepositoryImpl) GetQueryResponse(queryString string) ([]models.Video, error) {
 
 	requestBody := map[string]interface{}{

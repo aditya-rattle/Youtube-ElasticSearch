@@ -25,7 +25,12 @@ func (c *YouTubeAPIClient) GetNextAPIKey() string {
 	return key
 }
 
+// YTClient to fetch videos.
 func (c *YouTubeAPIClient) GetYoutubeVideoDetails(query, pageToken string) (map[string]interface{}, error) {
+	/*
+		Handle rate limiting scenario,
+		it distributes call over the keys in round robin fashion.
+	*/
 	apiKey := c.GetNextAPIKey()
 
 	searchQuery := query
